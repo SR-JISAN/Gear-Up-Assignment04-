@@ -5,4 +5,5 @@ const route = Router()
 
 route.post("/register", userController.registerController)
 
+
 export const  userRoute = route
