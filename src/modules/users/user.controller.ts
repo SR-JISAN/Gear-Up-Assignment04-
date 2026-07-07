@@ -16,7 +16,23 @@ const registerController = catchAsync(async(req:Request,res: Response)=>{
 })
 
 
+const getProfile = catchAsync(async(req:Request, res:Response)=>{
+     if (!req.user) {
+       throw new Error("Unauthorized");
+     }
+    const profileData = await userService.getProfileInDB(req.user.id);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Profile retrieved successfully",
+      data: profileData
+    });
+})
+
+
 
 export const userController = {
-    registerController
+    registerController,
+    getProfile
 }
