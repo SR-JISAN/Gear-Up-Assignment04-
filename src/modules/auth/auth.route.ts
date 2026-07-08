@@ -9,7 +9,7 @@ route.post("/login",authController.login);
 
 route.post("/refresh-token",auth(Role.ADMIN,Role.CUSTOMER,Role.PROVIDER),authController.refreshTheToken);
 
-route.post("/logout",auth(Role.CUSTOMER),authController.logout);
+route.post("/logout",authController.logout,);
 
 
 

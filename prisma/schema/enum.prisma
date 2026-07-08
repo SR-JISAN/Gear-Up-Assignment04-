@@ -8,3 +8,14 @@ enum User_Status {
     ACTIVE
     BLOCKED
 }
+
+enum product_condition {
+    NEW
+    USED
+    DAMAGED
+}
+
+enum product_availability {
+    AVAILABLE
+    OUT_OF_STOCK
+}

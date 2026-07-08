@@ -10,5 +10,5 @@ export interface IUser {
 
 export interface IUpdateRoleStatus {
   role?: Role;
-  customer_status: User_Status;
+  customer_status?: User_Status;
 }

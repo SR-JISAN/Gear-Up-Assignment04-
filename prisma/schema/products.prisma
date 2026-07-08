@@ -1,0 +1,21 @@
+model product {
+    id Int @id @default(autoincrement())
+    title String @db.VarChar(100)
+    details String @db.Text
+    brand String @db.VarChar(150)
+    stock String @db.VarChar(100)
+    price_per_day Int 
+    product_image String? 
+    condition product_condition @default(NEW)
+    availability product_availability @default(AVAILABLE)
+    categoryId  Int
+    category    category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+    providerId String
+    provider User @relation(fields: [providerId], references: [id], onDelete: Cascade)
+    created_at  DateTime @default(now())
+    updated_at DateTime @updatedAt
+    
+  @@map("products")
+    
+}
