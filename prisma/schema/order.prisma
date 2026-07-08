@@ -1,4 +1,4 @@
-model ProductOrder {
+model RentalOrder {
     id Int @id @default(autoincrement())
     totalAmount Decimal @db.Decimal(10,2)
     orderStatus order_status @default(PROCESSING)
@@ -7,8 +7,9 @@ model ProductOrder {
     returnDate DateTime? 
     customerId String 
     customer User @relation(fields: [customerId], references: [id],onDelete: Cascade)
+    rentalItem RentalItem[]
     createdAt DateTime @default(now())
 
-    @@map("productOrders")
+    @@map("rental_orders")
 
 }

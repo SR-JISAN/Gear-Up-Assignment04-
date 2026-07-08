@@ -8,7 +8,7 @@ model User {
     customer_status User_Status @default(ACTIVE)
     profile Profile?
     products Product[]
-    rentedProduct ProductOrder[]
+    rentedProduct RentalOrder[]
     created_at  DateTime @default(now())
     updated_at DateTime @updatedAt
 

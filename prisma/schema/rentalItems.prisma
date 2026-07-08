@@ -1,0 +1,26 @@
+model RentalItem {
+
+    id Int @id @default(autoincrement())
+
+    orderId Int
+    order RentalOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+    productId Int
+    product Product @relation(fields: [productId], references: [id])
+
+    quantity Int
+
+    pricePerDay Decimal @db.Decimal(10,2)
+
+    startDate DateTime
+
+    endDate DateTime
+
+    totalDays Int
+
+    subTotal Decimal @db.Decimal(10,2)
+
+    createdAt DateTime @default(now())
+
+    @@map("rental_items")
+}
