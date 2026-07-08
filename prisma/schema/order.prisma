@@ -1,0 +1,14 @@
+model ProductOrder {
+    id Int @id @default(autoincrement())
+    totalAmount Decimal @db.Decimal(10,2)
+    orderStatus order_status @default(PROCESSING)
+    pickUpAddress String @db.Text
+    pickUpDate DateTime?
+    returnDate DateTime? 
+    customerId String 
+    customer User @relation(fields: [customerId], references: [id],onDelete: Cascade)
+    createdAt DateTime @default(now())
+
+    @@map("productOrders")
+
+}

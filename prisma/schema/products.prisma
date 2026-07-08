@@ -1,4 +1,4 @@
-model product {
+model Product {
     id Int @id @default(autoincrement())
     title String @db.VarChar(100)
     details String @db.Text
@@ -9,7 +9,7 @@ model product {
     condition product_condition @default(NEW)
     availability product_availability @default(AVAILABLE)
     categoryId  Int
-    category    category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+    category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
     providerId String
     provider User @relation(fields: [providerId], references: [id], onDelete: Cascade)

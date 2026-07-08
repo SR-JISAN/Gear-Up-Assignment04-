@@ -1,7 +1,7 @@
-model category {
+model Category {
     id Int @id @default(autoincrement()) 
     name String @unique
-    products product[]
+    products Product[]
     created_at  DateTime @default(now())
     updated_at DateTime @updatedAt
 

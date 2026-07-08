@@ -19,3 +19,13 @@ enum product_availability {
     AVAILABLE
     OUT_OF_STOCK
 }
+
+enum order_status {
+    PROCESSING
+    PLACED 
+    CONFIRM 
+    PAID
+    PICKED_UP 
+    RETURNED 
+    CANCELLED
+}
