@@ -2,8 +2,8 @@
 import bcrypt from "bcryptjs";
 import config from "../../config";
 import { prisma } from "../../lib/prisma"
-import { IUser } from "./user.interface"
-import { Role } from "../../../generated/prisma/enums";
+import { IUpdateRoleStatus, IUser } from "./user.interface"
+import { Role, User_Status } from "../../../generated/prisma/enums";
 
 
 const registerInDB = async(payload : IUser)=>{
@@ -58,8 +58,37 @@ const getProfileInDB = async(userId: string)=>{
     return profileData;
 };
 
-const updateUserRoleInDB = async (id : string, role: Role)=>{
-      
+const updateProfileInDB = async (id: string, payload: any)=>{
+
+    const {name, phone_number,bio,profileImage} = payload
+
+    const updateProfile = await prisma.user.update({
+      where: { id },
+      data: {
+        name,
+        phone_number,
+        profile: {
+          update: {
+            profileImage,
+            bio,
+          },
+        },
+      },
+      omit: { password: true },
+      include: {
+        profile: true,
+      },
+    });
+
+    return updateProfile;
+
+
+}
+
+const updateUserRoleInDB = async (id : string, payload : IUpdateRoleStatus)=>{
+    
+    const {role , customer_status} = payload
+
     const user = await prisma.user.findUnique({
         where : {id}
     });
@@ -68,13 +97,23 @@ const updateUserRoleInDB = async (id : string, role: Role)=>{
         throw new Error ("User Not Found")
     };
 
-    if (!Object.values(Role).includes(role)) {
+    if (role && !Object.values(Role).includes(role)) {
       throw new Error("Invalid role");
     };
 
+    if (
+      customer_status &&
+      !Object.values(User_Status).includes(customer_status)
+    ) {
+      throw new Error("Invalid status");
+    }
+
     const updateUserRole = await prisma.user.update({
-        where: {id} ,
-        data : {role}
+      where: { id },
+      data: {
+        ...(role && { role }),
+        ...(customer_status && { customer_status }),
+      },
     });
     return updateUserRole;
 };
@@ -82,5 +121,6 @@ const updateUserRoleInDB = async (id : string, role: Role)=>{
 export const userService = {
     registerInDB,
     getProfileInDB,
-    updateUserRoleInDB
+    updateUserRoleInDB,
+    updateProfileInDB
 }
