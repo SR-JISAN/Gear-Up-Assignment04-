@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import config from "../../config";
 import { prisma } from "../../lib/prisma"
 import { IUser } from "./user.interface"
+import { Role } from "../../../generated/prisma/enums";
+
 
 const registerInDB = async(payload : IUser)=>{
     const {name, email, password, phone_number , profileImage}= payload;
@@ -42,7 +44,7 @@ const registerInDB = async(payload : IUser)=>{
 
      return user;
     
-}
+};
 
 const getProfileInDB = async(userId: string)=>{
 
@@ -54,9 +56,31 @@ const getProfileInDB = async(userId: string)=>{
       }
     });
     return profileData;
-}
+};
+
+const updateUserRoleInDB = async (id : string, role: Role)=>{
+      
+    const user = await prisma.user.findUnique({
+        where : {id}
+    });
+
+    if(!user){
+        throw new Error ("User Not Found")
+    };
+
+    if (!Object.values(Role).includes(role)) {
+      throw new Error("Invalid role");
+    };
+
+    const updateUserRole = await prisma.user.update({
+        where: {id} ,
+        data : {role}
+    });
+    return updateUserRole;
+};
 
 export const userService = {
     registerInDB,
-    getProfileInDB
+    getProfileInDB,
+    updateUserRoleInDB
 }

@@ -12,4 +12,6 @@ route.get("/my-profile",
   userController.getProfile,
 );
 
+route.patch("/:id/role",auth(Role.ADMIN), userController.updateUserRole);
+
 export const  userRoute = route
