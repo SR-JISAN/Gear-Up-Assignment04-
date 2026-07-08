@@ -58,6 +58,31 @@ const getProfileInDB = async(userId: string)=>{
     return profileData;
 };
 
+const getAllUsersFromDB = async () => {
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone_number: true,
+      role: true,
+      customer_status: true,
+      created_at: true,
+      updated_at: true,
+      profile: {
+        select: {
+          profileImage: true,
+        },
+      },
+    },
+    orderBy: {
+      created_at: "desc",
+    },
+  });
+
+  return users;
+};
+
 const updateProfileInDB = async (id: string, payload: any)=>{
 
     const {name, phone_number,bio,profileImage} = payload
@@ -121,6 +146,7 @@ const updateUserRoleInDB = async (id : string, payload : IUpdateRoleStatus)=>{
 export const userService = {
     registerInDB,
     getProfileInDB,
+    getAllUsersFromDB,
     updateUserRoleInDB,
     updateProfileInDB
 }

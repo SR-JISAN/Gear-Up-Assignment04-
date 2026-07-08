@@ -12,6 +12,8 @@ route.get("/my-profile",
   userController.getProfile,
 );
 
+route.get("/all-users",auth(Role.ADMIN), userController.getallUsers);
+
 route.patch("/update-profile",auth(Role.ADMIN,Role.CUSTOMER,Role.PROVIDER),userController.updateProfile);
 
 route.patch("/:id/role-status",auth(Role.ADMIN), userController.updateUserRoleStatus);

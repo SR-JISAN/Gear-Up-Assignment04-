@@ -5,7 +5,7 @@ import { jwtUtils } from "../../utils/jwt";
 import config from "../../config";
 import { JwtPayload } from "jsonwebtoken";
 
-const loginInDb = async(payload: ILogin)=>{
+const loginInDB = async(payload: ILogin)=>{
      const {email, password} = payload;
 
      const  logInUser = await prisma.user.findUniqueOrThrow({
@@ -67,7 +67,12 @@ const refreshTokenInBD = async(refToken: string)=>{
      return { newAccessToken };
 };
 
+const logoutInDB = async (userId: string) => {
+  return null;
+};
+
 export const authService = {
-    loginInDb,
-    refreshTokenInBD
+    loginInDB,
+    refreshTokenInBD,
+    logoutInDB
 };

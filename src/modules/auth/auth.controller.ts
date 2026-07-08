@@ -9,7 +9,7 @@ const login = catchAsync (async (req:Request, res: Response)=>{
 
     const payload =req.body;
 
-    const {accessToken, refreshToken} = await authService.loginInDb(payload);
+    const {accessToken, refreshToken} = await authService.loginInDB(payload);
 
     res.cookie("accessToken",accessToken,
         {
@@ -42,6 +42,29 @@ const login = catchAsync (async (req:Request, res: Response)=>{
 
 });
 
+const logout = catchAsync(async (req: Request, res: Response) => {
+  await authService.logoutInDB(req.user?.id as string);
+
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+  });
+
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Logged out successfully",
+    data: null,
+  });
+});
+
 
 const refreshTheToken = catchAsync(async(req:Request,res: Response)=>{
          const refreshToken = req.cookies.refreshToken;
@@ -58,5 +81,6 @@ const refreshTheToken = catchAsync(async(req:Request,res: Response)=>{
 
 export const authController ={
     login,
+    logout,
     refreshTheToken
 }

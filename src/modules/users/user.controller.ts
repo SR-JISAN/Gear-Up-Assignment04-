@@ -30,6 +30,16 @@ const getProfile = catchAsync(async(req:Request, res:Response)=>{
     });
 });
 
+const getallUsers = catchAsync(async(req:Request, res:Response)=>{
+     const result = await userService.getAllUsersFromDB();
+     sendResponse(res, {
+       success: true,
+       statusCode: httpStatus.OK,
+       message: "Found All Users Successfully",
+       data: result,
+     });
+});
+
 const updateProfile = catchAsync (async(req:Request, res: Response)=>{
    if(!req.user){
     throw new Error ("User Not Found")
@@ -42,7 +52,7 @@ const updateProfile = catchAsync (async(req:Request, res: Response)=>{
     statusCode: httpStatus.OK,
     message: "User Updated Successfully By Admin",
     data: result
-   })
+   });
 
    
 });
@@ -63,6 +73,7 @@ const updateUserRoleStatus =catchAsync (async (req:Request, res: Response)=>{
 export const userController = {
     registerController,
     getProfile,
+    getallUsers,
     updateUserRoleStatus,
     updateProfile
 }

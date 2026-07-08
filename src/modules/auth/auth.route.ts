@@ -7,7 +7,9 @@ const route = Router();
 
 route.post("/login",authController.login);
 
-route.post("/refresh-token",auth(Role.ADMIN,Role.CUSTOMER,Role.PROVIDER),authController.refreshTheToken)
+route.post("/refresh-token",auth(Role.ADMIN,Role.CUSTOMER,Role.PROVIDER),authController.refreshTheToken);
+
+route.post("/logout",auth(Role.CUSTOMER),authController.logout);
 
 
 
