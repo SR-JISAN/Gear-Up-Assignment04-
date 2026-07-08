@@ -25,6 +25,6 @@ app.use("/api/users", userRoute);
 
 app.use("/api/auth", authRoute);
 
-app.use("api/products", productRoute);
+app.use("/api/products", productRoute);
 
 export default app;

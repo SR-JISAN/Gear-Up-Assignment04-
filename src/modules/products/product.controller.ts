@@ -18,7 +18,21 @@ const postProduct = catchAsync(async(req:Request,res:Response)=>{
   
 });
 
+const postCategory = catchAsync(async(req:Request,res:Response)=>{
+
+    const result = await productService.postCategoryInDB(req.body);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "Category Created Successfully",
+      data: result,
+    });
+
+})
+
 
 export const productController ={
-    postProduct
+    postProduct,
+    postCategory
 };

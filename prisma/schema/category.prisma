@@ -1,6 +1,6 @@
 model category {
     id Int @id @default(autoincrement()) 
-    name String 
+    name String @unique
     products product[]
     created_at  DateTime @default(now())
     updated_at DateTime @updatedAt

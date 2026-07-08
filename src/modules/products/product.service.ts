@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma";
-import { IProduct } from "./product.interface";
+import { ICategory, IProduct } from "./product.interface";
 
 const postProductInDB = async(id: string, payload: IProduct)=>{
     const {
@@ -57,8 +57,24 @@ const postProductInDB = async(id: string, payload: IProduct)=>{
 };
 
 
-const postCategoryInDB =async()=>{
+const postCategoryInDB =async(payload:ICategory)=>{
+    const {name}= payload
+    const existingCategory = await prisma.category.findFirst({
+      where: {
+        name: {
+          equals: payload.name,
+          mode: "insensitive",
+        },
+      },
+    });
 
+    if (existingCategory) {
+      throw new Error("Category already exists");
+    }
+     const result =await prisma.category.create({
+        data:{name}
+     });
+     return result;
 };
 
 export const productService ={

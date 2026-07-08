@@ -7,3 +7,7 @@ export interface IProduct {
     categoryId: number
     product_image? : string;
 };
+
+export interface ICategory {
+    name: string
+}
