@@ -6,6 +6,7 @@ export interface IUser {
   password: string;
   phone_number: string;
   profileImage?: string;
+  role?: Role
 }
 
 export interface IUpdateRoleStatus {

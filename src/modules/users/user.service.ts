@@ -7,13 +7,17 @@ import { Role, User_Status } from "../../../generated/prisma/enums";
 
 
 const registerInDB = async(payload : IUser)=>{
-    const {name, email, password, phone_number , profileImage}= payload;
+    const {name, email, password, phone_number , profileImage,role}= payload;
      const isUserAlreadyHaveEmail  = await prisma.user.findUnique({
         where : {email}
      })
 
      if(isUserAlreadyHaveEmail){
         throw new Error ("Email Already Exists");
+     }
+
+     if (role == Role.ADMIN) {
+       throw new Error("Invalid role");
      }
 
      const saltRounds = Number(config.bcryptSaltRounds);
@@ -25,6 +29,7 @@ const registerInDB = async(payload : IUser)=>{
             email,
             password: hashPassword,
             phone_number,
+            role,
             profile:{
                 create:{
                     profileImage

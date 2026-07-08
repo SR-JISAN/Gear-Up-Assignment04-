@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { ICategory, IProduct } from "./product.interface";
 
+
 const postProductInDB = async(id: string, payload: IProduct)=>{
     const {
       title,
@@ -24,7 +25,7 @@ const postProductInDB = async(id: string, payload: IProduct)=>{
     if(!stock){
         throw new Error("Stock is  required");
      };
-    if(!price_per_day || price_per_day >= 0){
+    if(!price_per_day || price_per_day <= 0){
         throw new Error("Price is  required & Price must be greater than 0");
      };
     
@@ -43,11 +44,19 @@ const postProductInDB = async(id: string, payload: IProduct)=>{
      };
 
      const product = await prisma.product.create({
-        data:{
-            ...payload,
-            providerId: id
-        }
-
+       data: {
+         title,
+         details,
+         brand,
+         stock,
+         price_per_day,
+         product_image,
+         providerId: id,
+         categoryId
+       },
+       include: {
+        category: true,
+       }
      });
 
      return product;
