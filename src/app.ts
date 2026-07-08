@@ -5,6 +5,7 @@ import config from "./config";
 import { userRoute } from "./modules/users/user.route";
 import { authRoute } from "./modules/auth/auth.route";
 import { productRoute } from "./modules/products/product.route";
+import { orderRoute } from "./modules/rentalOrders/order.route";
 
 const app :Application = express();
 
@@ -26,5 +27,7 @@ app.use("/api/users", userRoute);
 app.use("/api/auth", authRoute);
 
 app.use("/api/products", productRoute);
+
+app.use("/api/orders", orderRoute);
 
 export default app;
