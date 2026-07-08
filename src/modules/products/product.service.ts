@@ -144,9 +144,31 @@ const updateProductInDB =async(productId: number, payload: IUpdateProduct,user :
 
 };
 
+const deleteProductInDB =async(productId: number, user :JwtPayload)=>{
+   const product = await prisma.product.findUnique({
+    where: {id:productId}
+   });
+
+   if(!product){
+    throw new Error("Product Not Found");
+   };
+
+   if(user.role === Role.PROVIDER && product.providerId !== user.id){
+    throw new Error("You are not authorized to delete this product");
+   };
+
+   const result =await prisma.product.delete({
+    where:{id:productId} 
+   });
+
+   return result;
+
+};
+
 export const productService ={
     postProductInDB,
     postCategoryInDB,
     getProductInDB,
-    updateProductInDB
+    updateProductInDB,
+    deleteProductInDB
 }

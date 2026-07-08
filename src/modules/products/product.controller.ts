@@ -37,7 +37,7 @@ const product = catchAsync(async(req: Request,res:Response)=>{
     const result = await productService.getProductInDB();
    sendResponse(res, {
      success: true,
-     statusCode: httpStatus.CREATED,
+     statusCode: httpStatus.OK,
      message: "Found Products Successfully",
      data: result,
    });
@@ -54,9 +54,26 @@ const result = await productService.updateProductInDB(id,body,user);
 
     sendResponse(res, {
       success: true,
-      statusCode: httpStatus.CREATED,
+      statusCode: httpStatus.OK,
       message: "Update Product Successfully",
       data: result,
+    });
+});
+
+
+const deleteProduct = catchAsync(async(req:Request,res:Response)=>{
+
+    const id = Number(req.params.id);
+    const user = req.user as JwtPayload;
+
+
+     await productService.deleteProductInDB(id,user);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "delete Product Successfully",
+      data: null,
     });
 });
 
@@ -65,5 +82,6 @@ export const productController ={
     postProduct,
     postCategory,
     product,
-    updateProduct
+    updateProduct,
+    deleteProduct
 };

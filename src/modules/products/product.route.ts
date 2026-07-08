@@ -14,6 +14,8 @@ route.get("/", productController.product);
 
 route.patch("/update/:id",auth(Role.PROVIDER,Role.ADMIN), productController.updateProduct);
 
+route.delete("/delete/:id",auth(Role.ADMIN,Role.PROVIDER),productController.deleteProduct);
+
 
 
 export const productRoute =route;
