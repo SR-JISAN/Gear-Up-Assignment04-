@@ -12,5 +12,8 @@ route.post("/category",auth(Role.ADMIN), productController.postCategory);
 
 route.get("/", productController.product);
 
+route.patch("/update/:id",auth(Role.PROVIDER,Role.ADMIN), productController.updateProduct);
+
+
 
 export const productRoute =route;

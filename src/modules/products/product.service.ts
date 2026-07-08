@@ -1,5 +1,7 @@
+import { JwtPayload } from "jsonwebtoken";
 import { prisma } from "../../lib/prisma";
-import { ICategory, IProduct } from "./product.interface";
+import { ICategory, IProduct, IUpdateProduct } from "./product.interface";
+import { Role } from "../../../generated/prisma/enums";
 
 
 const postProductInDB = async(id: string, payload: IProduct)=>{
@@ -119,8 +121,32 @@ const getProductInDB = async()=>{
    return result;
 }
 
+const updateProductInDB =async(productId: number, payload: IUpdateProduct,user :JwtPayload)=>{
+   const product = await prisma.product.findUnique({
+    where: {id:productId}
+   });
+
+   if(!product){
+    throw new Error("Product Not Found");
+   };
+
+   if(user.role === Role.PROVIDER && product.providerId !== user.id){
+    throw new Error("You are not authorized to update this product");
+   };
+
+   const result =await prisma.product.update({
+    where:{id:productId},
+    data: payload
+    
+   });
+
+   return result;
+
+};
+
 export const productService ={
     postProductInDB,
     postCategoryInDB,
-    getProductInDB
+    getProductInDB,
+    updateProductInDB
 }
