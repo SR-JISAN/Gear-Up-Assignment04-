@@ -10,5 +10,7 @@ route.post("/post",auth(Role.PROVIDER), productController.postProduct);
 
 route.post("/category",auth(Role.ADMIN), productController.postCategory);
 
+route.get("/", productController.product);
+
 
 export const productRoute =route;

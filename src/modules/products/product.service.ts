@@ -86,7 +86,41 @@ const postCategoryInDB =async(payload:ICategory)=>{
      return result;
 };
 
+
+const getProductInDB = async()=>{
+   const result = await prisma.product.findMany({
+     select: {
+       id: true,
+       title: true,
+       details: true,
+       availability: true,
+       brand: true,
+       condition: true,
+       price_per_day: true,
+       stock: true,
+       product_image: true,
+       created_at: true,
+       updated_at: true,
+       category: {
+         select: {
+           name: true,
+         },
+       },
+       provider:{
+        select:{
+            name:true
+        }
+       }
+     },
+     orderBy: {
+       created_at: "asc",
+     },
+   });
+   return result;
+}
+
 export const productService ={
     postProductInDB,
-    postCategoryInDB
+    postCategoryInDB,
+    getProductInDB
 }
