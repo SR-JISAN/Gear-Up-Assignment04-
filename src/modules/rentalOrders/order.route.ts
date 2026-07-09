@@ -7,6 +7,8 @@ const route =Router();
 
 route.post("/rentals",auth(Role.CUSTOMER), orderController.rentalOrder);
 
-route.patch("/update/:id",auth(Role.ADMIN,Role.CUSTOMER,Role.PROVIDER), orderController.updateOrder)
+route.patch("/update/:id",auth(Role.ADMIN,Role.CUSTOMER,Role.PROVIDER), orderController.updateOrder);
+
+route.get("/all",auth(Role.CUSTOMER, Role.PROVIDER, Role.ADMIN),orderController.getOrders);
 
 export const orderRoute = route

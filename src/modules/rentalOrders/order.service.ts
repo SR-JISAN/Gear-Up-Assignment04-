@@ -195,7 +195,91 @@ const updateOrderInDB = async (
   return result;
 };
 
+const getOrdersInDB = async (user:JwtPayload)=>{
+  if(!user){
+    throw new Error("User not found")
+  };
+  if (user.role === Role.ADMIN) {
+     return await prisma.rentalOrder.findMany({
+         include: {
+            customer: {
+             select: {
+              id: true,
+              name: true,
+              email: true,
+              },
+        },
+       rentalItem: {
+         include: {
+           product: {
+             include: {
+               category: true,
+             },
+           },
+         },
+       },
+     },
+     orderBy: {
+       createdAt: "asc",
+     },
+   });
+ };
+
+ if (user.role === Role.CUSTOMER) {
+   return await prisma.rentalOrder.findMany({
+     where: {
+       customerId: user.id,
+     },
+     include: {
+       rentalItem: {
+         include: {
+           product: true,
+         },
+       },
+     },
+     orderBy: {
+       createdAt: "asc",
+     },
+   });
+ };
+
+
+  const result = await prisma.rentalOrder.findMany({
+    where: {
+      rentalItem: {
+        some: {
+          product: {
+            providerId: user.id,
+          },
+        },
+      },
+    },
+    include: {
+      customer: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      rentalItem: {
+        include: {
+          product: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+
+return result;
+
+}
+
 export const orderService = {
     rentalOrderInDB,
-    updateOrderInDB
+    updateOrderInDB,
+    getOrdersInDB
 };
