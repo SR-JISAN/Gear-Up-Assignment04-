@@ -12,6 +12,8 @@ route.post("/category",auth(Role.ADMIN), productController.postCategory);
 
 route.get("/", productController.product);
 
+route.get("/:id", productController.singleProduct)
+
 route.patch("/update/:id",auth(Role.PROVIDER,Role.ADMIN), productController.updateProduct);
 
 route.delete("/delete/:id",auth(Role.ADMIN,Role.PROVIDER),productController.deleteProduct);

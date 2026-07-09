@@ -34,7 +34,7 @@ const postCategory = catchAsync(async(req:Request,res:Response)=>{
 
 const product = catchAsync(async(req: Request,res:Response)=>{
 
-    const result = await productService.getProductInDB();
+    const result = await productService.getProductInDB(req.query);
    sendResponse(res, {
      success: true,
      statusCode: httpStatus.OK,
@@ -42,6 +42,17 @@ const product = catchAsync(async(req: Request,res:Response)=>{
      data: result,
    });
 });
+
+const singleProduct =catchAsync(async(req:Request,res:Response)=>{
+  const id = Number(req.params.id);
+  const result = await productService.getSingleProduct(id);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Found Products Successfully",
+    data: result,
+  });
+})
 
 const updateProduct = catchAsync(async(req:Request,res:Response)=>{
 
@@ -82,6 +93,7 @@ export const productController ={
     postProduct,
     postCategory,
     product,
+    singleProduct,
     updateProduct,
     deleteProduct
 };
