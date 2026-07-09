@@ -1,6 +1,7 @@
 import { JwtPayload } from "jsonwebtoken";
 import { prisma } from "../../lib/prisma";
-import { IRentalItemData } from "./order.interface";
+import { IRentalItemData, IUpdateOrder } from "./order.interface";
+import { order_status, Role } from "../../../generated/prisma/enums";
 
 const rentalOrderInDB = async(payload: any, user: JwtPayload)=>{
 
@@ -112,7 +113,88 @@ const rentalOrderInDB = async(payload: any, user: JwtPayload)=>{
 };
 
 
+const updateOrderInDB =async(orderId: number, payload: IUpdateOrder,user :JwtPayload)=>{
+   const order = await prisma.rentalOrder.findUnique({
+     where: {
+       id: orderId,
+     },
+     include: {
+       rentalItem: {
+         include: {
+           product: true,
+         },
+       },
+     },
+   });
+
+   if (!order) {
+     throw new Error("Order not found");
+   }
+
+  
+
+   if (user.role === Role.CUSTOMER) {
+     if (order.customerId !== user.id) {
+       throw new Error("You are not authorized to update this order");
+     }
+
+    
+     if (payload.orderStatus !== order_status.CANCELLED) {
+       throw new Error("Customer can only cancel the order");
+     }
+
+     if (order.orderStatus !== order_status.PROCESSING) {
+       throw new Error("Only processing orders can be cancelled");
+     }
+   };
+
+   if (user.role === Role.PROVIDER) {
+     const isProviderOrder = order.rentalItem.every(
+       (item) => item.product.providerId === user.id,
+     );
+
+     if (!isProviderOrder) {
+       throw new Error("You are not authorized to update this order");
+     }
+
+     const allowedStatus : order_status[] = [
+       order_status.CONFIRM,
+       order_status.PICKED_UP,
+       order_status.RETURNED
+     ];
+
+     if (!payload.orderStatus || !allowedStatus.includes(payload.orderStatus)) {
+  throw new Error("Invalid order status");
+   }
+
+   const result = await prisma.rentalOrder.update({
+     where: {
+       id: orderId,
+     },
+     data: {
+       orderStatus: payload.orderStatus,
+       pickUpDate: payload.pickupDate,
+       returnDate: payload.returnDate,
+       pickUpAddress: payload.pickUpAddress,
+     },
+     include: {
+       rentalItem: true,
+       customer: {
+         select: {
+           id: true,
+           name: true,
+           email: true,
+         },
+       },
+     },
+   });
+
+   return result;
+}
+};
+
 
 export const orderService = {
-    rentalOrderInDB
+    rentalOrderInDB,
+    updateOrderInDB
 };

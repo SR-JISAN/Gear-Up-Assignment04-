@@ -1,3 +1,5 @@
+import { order_status } from "../../../generated/prisma/enums";
+
 export interface IRentalItem {
   productId: number;
   quantity: number;
@@ -18,4 +20,11 @@ export interface IRentalItemData {
   endDate: Date;
   totalDays: number;
   subTotal: number;
+}
+
+export interface IUpdateOrder {
+  orderStatus?: order_status;
+  pickupDate?: string;
+  returnDate?: string;
+  pickUpAddress?: string;
 }

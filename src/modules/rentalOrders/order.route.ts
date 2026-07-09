@@ -7,4 +7,6 @@ const route =Router();
 
 route.post("/rentals",auth(Role.CUSTOMER), orderController.rentalOrder);
 
+route.patch("/update",auth(Role.ADMIN,Role.CUSTOMER,Role.PROVIDER), orderController.updateOrder)
+
 export const orderRoute = route
