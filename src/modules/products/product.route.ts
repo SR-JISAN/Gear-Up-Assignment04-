@@ -12,7 +12,9 @@ route.post("/category",auth(Role.ADMIN), productController.postCategory);
 
 route.get("/", productController.product);
 
-route.get("/:id", productController.singleProduct)
+route.get("/single/:id", productController.singleProduct);
+
+route.get("/categories",auth(Role.ADMIN), productController.getAllCategories);
 
 route.patch("/update/:id",auth(Role.PROVIDER,Role.ADMIN), productController.updateProduct);
 

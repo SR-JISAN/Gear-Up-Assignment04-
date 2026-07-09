@@ -11,4 +11,7 @@ route.patch("/update/:id",auth(Role.ADMIN,Role.CUSTOMER,Role.PROVIDER), orderCon
 
 route.get("/all",auth(Role.CUSTOMER, Role.PROVIDER, Role.ADMIN),orderController.getOrders);
 
+route.get("/single/:id",auth(Role.CUSTOMER, Role.PROVIDER, Role.ADMIN),orderController.getSingleOrders);
+
+
 export const orderRoute = route

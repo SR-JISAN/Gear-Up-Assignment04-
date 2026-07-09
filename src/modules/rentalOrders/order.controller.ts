@@ -31,6 +31,21 @@ const updateOrder = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getSingleOrders = catchAsync (async(req:Request,res:Response)=>{
+
+  const user = req.user as JwtPayload
+  const id =Number(req.params.id)
+
+  const result = await orderService.getSingleOrderInDB(user, id);
+
+  sendResponse(res,{
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Successfully Get  Order",
+    data: result
+  });
+
+});
 const getOrders = catchAsync (async(req:Request,res:Response)=>{
 
   const user = req.user as JwtPayload
@@ -51,5 +66,6 @@ const getOrders = catchAsync (async(req:Request,res:Response)=>{
 export const orderController = {
     rentalOrder,
     updateOrder,
-    getOrders
+    getOrders,
+    getSingleOrders
 };

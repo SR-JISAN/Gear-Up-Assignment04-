@@ -278,8 +278,94 @@ return result;
 
 }
 
+const getSingleOrderInDB = async (user:JwtPayload, id:number)=>{
+      if (!user) {
+        throw new Error("User not found");
+      }
+      if (user.role === Role.ADMIN) {
+        const result = await prisma.rentalOrder.findUnique({
+          where:{id:id},
+          include: {
+            customer: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            rentalItem: {
+              include: {
+                product: {
+                  include: {
+                    category: true,
+                  },
+                },
+              },
+            },
+          }
+        });
+        if (!result) {
+          throw new Error("Order not found");
+        }
+        return result;
+      };
+
+      if (user.role === Role.CUSTOMER) {
+       const result = await prisma.rentalOrder.findFirst({
+          where: {
+            id: id,
+            customerId: user.id,
+          },
+          include: {
+            rentalItem: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        });
+        if (!result) {
+          throw new Error("Order not found");
+        }
+        return result;
+      };
+
+      const result = await prisma.rentalOrder.findFirst({
+        where: {
+          id: id,
+          rentalItem: {
+            some: {
+              product: {
+                providerId: user.id,
+              },
+            },
+          },
+        },
+        include: {
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          rentalItem: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+      if (!result) {
+        throw new Error("Order not found");
+      }
+
+      return result;
+}
+
 export const orderService = {
     rentalOrderInDB,
     updateOrderInDB,
-    getOrdersInDB
+    getOrdersInDB,
+    getSingleOrderInDB
 };

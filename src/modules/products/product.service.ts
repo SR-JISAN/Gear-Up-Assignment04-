@@ -1,7 +1,7 @@
 import { JwtPayload } from "jsonwebtoken";
 import { prisma } from "../../lib/prisma";
 import { ICategory, IProduct, IUpdateProduct } from "./product.interface";
-import { Role } from "../../../generated/prisma/enums";
+import { product_availability, Role } from "../../../generated/prisma/enums";
 
 
 
@@ -164,26 +164,50 @@ const getSingleProduct =async(id:number)=>{
     return result;
 }
 
+const getCategoriesInDb = async()=>{
+
+      const result = await prisma.category.findMany({
+        orderBy: {
+          created_at: "desc",
+        },
+      });
+
+      return result;
+};
+
 const updateProductInDB =async(productId: number, payload: IUpdateProduct,user :JwtPayload)=>{
-   const product = await prisma.product.findUnique({
-    where: {id:productId}
-   });
+     const product = await prisma.product.findUnique({
+       where: {
+         id: productId,
+       },
+     });
 
-   if(!product){
-    throw new Error("Product Not Found");
-   };
+     if (!product) {
+       throw new Error("Product not found");
+     }
 
-   if(user.role === Role.PROVIDER && product.providerId !== user.id){
-    throw new Error("You are not authorized to update this product");
-   };
+     if (user.role === Role.PROVIDER && product.providerId !== user.id) {
+       throw new Error("You are not authorized to update this product");
+     }
 
-   const result =await prisma.product.update({
-    where:{id:productId},
-    data: payload
-    
-   });
+     const updateData = { ...payload };
 
-   return result;
+     
+     if (payload.stock !== undefined) {
+       updateData.availability =
+         payload.stock > 0
+           ? product_availability.AVAILABLE
+           : product_availability.OUT_OF_STOCK;
+     }
+
+     const result = await prisma.product.update({
+       where: {
+         id: productId,
+       },
+       data: updateData,
+     });
+
+     return result;
 
 };
 
@@ -214,5 +238,6 @@ export const productService ={
     getProductInDB,
     getSingleProduct,
     updateProductInDB,
-    deleteProductInDB
+    deleteProductInDB,
+    getCategoriesInDb
 }

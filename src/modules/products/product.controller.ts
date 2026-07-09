@@ -52,7 +52,18 @@ const singleProduct =catchAsync(async(req:Request,res:Response)=>{
     message: "Found Products Successfully",
     data: result,
   });
-})
+});
+
+const getAllCategories =catchAsync(async(req:Request, res:Response)=>{
+      
+  const result = await productService.getCategoriesInDb();
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Found Categories Successfully",
+    data: result,
+  });
+});
 
 const updateProduct = catchAsync(async(req:Request,res:Response)=>{
 
@@ -95,5 +106,6 @@ export const productController ={
     product,
     singleProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    getAllCategories
 };
