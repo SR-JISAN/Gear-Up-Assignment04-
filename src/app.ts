@@ -7,6 +7,8 @@ import { authRoute } from "./modules/auth/auth.route";
 import { productRoute } from "./modules/products/product.route";
 import { orderRoute } from "./modules/rentalOrders/order.route";
 import { paymentsRoute } from "./modules/payments/payment.route";
+import { reviewsRoute } from "./modules/reviews/reviews.route";
+import globalErrorHandler from "./app/errors/globalErrorHandler";
 
 const app :Application = express();
 
@@ -36,5 +38,9 @@ app.use("/api/products", productRoute);
 app.use("/api/orders", orderRoute);
 
 app.use("/api/payments",paymentsRoute);
+
+app.use("/api/reviews",reviewsRoute);
+
+app.use(globalErrorHandler);
 
 export default app;

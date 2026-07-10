@@ -2,6 +2,8 @@ import { JwtPayload } from "jsonwebtoken";
 import { prisma } from "../../lib/prisma";
 import { ICategory, IProduct, IUpdateProduct } from "./product.interface";
 import { product_availability, Role } from "../../../generated/prisma/enums";
+import AppError from "../../app/errors/AppError";
+import httpStatus from "http-status";
 
 
 
@@ -17,23 +19,26 @@ const postProductInDB = async(id: string, payload: IProduct)=>{
     } = payload;
 
     if(!title){
-        throw new Error("Title is  required");
+        throw new AppError(httpStatus.BAD_REQUEST, "Title is  required");
      };
     if(!details){
-        throw new Error("Description is  required");
+        throw new AppError(httpStatus.BAD_REQUEST, "Description is  required");
      };
     if(!brand){
-        throw new Error("Brand is  required");
+        throw new AppError(httpStatus.BAD_REQUEST, "Brand is  required");
      };
     if(!stock){
-        throw new Error("Stock is  required");
+        throw new AppError(httpStatus.BAD_REQUEST, "Stock is  required");
      };
     if(!price_per_day || price_per_day <= 0){
-        throw new Error("Price is  required & Price must be greater than 0");
+        throw new AppError(
+          httpStatus.BAD_REQUEST,
+          "Price is  required & Price must be greater than 0",
+        );
      };
     
     if(!categoryId){
-        throw new Error("Category is  required");
+        throw new AppError(httpStatus.BAD_REQUEST, "Category is  required");
      };
     
      const category = await prisma.category.findUnique({
@@ -43,7 +48,7 @@ const postProductInDB = async(id: string, payload: IProduct)=>{
      });
 
      if(!category){
-        throw new Error ("Category not found");
+        throw new AppError(httpStatus.NOT_FOUND, "Category not found");
      };
 
      const product = await prisma.product.create({
@@ -63,9 +68,6 @@ const postProductInDB = async(id: string, payload: IProduct)=>{
      });
 
      return product;
-
-
-
 };
 
 
@@ -81,7 +83,7 @@ const postCategoryInDB =async(payload:ICategory)=>{
     });
 
     if (existingCategory) {
-      throw new Error("Category already exists");
+      throw new AppError(httpStatus.CONFLICT, "Category already exists");
     }
      const result =await prisma.category.create({
         data:{name}
@@ -145,6 +147,17 @@ const getProductInDB = async (query: Record<string, any>) => {
             email: true,
           },
         },
+        reviews: {
+          select: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
+            rating: true,
+            comment: true,
+          },
+        },
       },
       orderBy: {
         created_at: "desc",
@@ -155,7 +168,7 @@ const getProductInDB = async (query: Record<string, any>) => {
 
 const getSingleProduct =async(id:number)=>{
   if(!id){
-    throw new Error ("Product not Found");
+    throw new AppError(httpStatus.NOT_FOUND, "Product not Found");
   };
     const result  = await prisma.product.findUnique({
       where: {id:id}
@@ -183,7 +196,7 @@ const updateProductInDB =async(productId: number, payload: IUpdateProduct,user :
      });
 
      if (!product) {
-       throw new Error("Product not found");
+       throw new AppError(httpStatus.NOT_FOUND, "Product not found");
      }
 
      if (user.role === Role.PROVIDER && product.providerId !== user.id) {
@@ -217,11 +230,14 @@ const deleteProductInDB =async(productId: number, user :JwtPayload)=>{
    });
 
    if(!product){
-    throw new Error("Product Not Found");
+    throw new AppError(httpStatus.NOT_FOUND, "Product Not Found");
    };
 
    if(user.role === Role.PROVIDER && product.providerId !== user.id){
-    throw new Error("You are not authorized to delete this product");
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "You are not authorized to delete this product",
+    );
    };
 
    const result =await prisma.product.delete({

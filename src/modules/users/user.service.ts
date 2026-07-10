@@ -4,6 +4,8 @@ import config from "../../config";
 import { prisma } from "../../lib/prisma"
 import { IUpdateRoleStatus, IUser } from "./user.interface"
 import { Role, User_Status } from "../../../generated/prisma/enums";
+import AppError from "../../app/errors/AppError";
+import httpStatus from "http-status";
 
 
 const registerInDB = async(payload : IUser)=>{
@@ -13,11 +15,11 @@ const registerInDB = async(payload : IUser)=>{
      })
 
      if(isUserAlreadyHaveEmail){
-        throw new Error ("Email Already Exists");
+        throw new AppError(httpStatus.CONFLICT, "Email Already Exists");
      }
 
      if (role == Role.ADMIN) {
-       throw new Error("Invalid role");
+       throw new AppError(httpStatus.UNAUTHORIZED, "Invalid role");
      }
 
      const saltRounds = Number(config.bcryptSaltRounds);
@@ -124,18 +126,18 @@ const updateUserRoleInDB = async (id : string, payload : IUpdateRoleStatus)=>{
     });
 
     if(!user){
-        throw new Error ("User Not Found")
+        throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
     };
 
     if (role && !Object.values(Role).includes(role)) {
-      throw new Error("Invalid role");
+      throw new AppError(httpStatus.UNAUTHORIZED, "Invalid role");
     };
 
     if (
       customer_status &&
       !Object.values(User_Status).includes(customer_status)
     ) {
-      throw new Error("Invalid status");
+      throw new AppError(httpStatus.BAD_REQUEST, "Invalid status");
     }
 
     const updateUserRole = await prisma.user.update({

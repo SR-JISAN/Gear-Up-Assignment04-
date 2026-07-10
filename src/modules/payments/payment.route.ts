@@ -7,7 +7,9 @@ import auth from "../../middleware/auth";
 const route = Router();
 
 route.post("/checkout",auth(Role.CUSTOMER), paymentsController.createCheckout);
-route.post(
-  "/webhook",paymentsController.stripeWebhook);
+route.post("/webhook",paymentsController.stripeWebhook);
+
+route.get("/history/:id",auth(Role.ADMIN,Role.CUSTOMER),paymentsController.singlePaymentsHistory);
+route.get("/history",auth(Role.ADMIN,Role.CUSTOMER),paymentsController.paymentsHistory);
 
 export const paymentsRoute = route;

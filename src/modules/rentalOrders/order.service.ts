@@ -2,20 +2,27 @@ import { JwtPayload } from "jsonwebtoken";
 import { prisma } from "../../lib/prisma";
 import { IRentalItemData, IUpdateOrder } from "./order.interface";
 import { order_status, Role } from "../../../generated/prisma/enums";
+import { Prisma } from "../../../generated/prisma/client";
+import AppError from "../../app/errors/AppError";
+import httpStatus from "http-status";
+
 
 const rentalOrderInDB = async(payload: any, user: JwtPayload)=>{
 
   if (!payload.pickUpAddress) {
-    throw new Error("Pickup address is required");
+    throw new AppError(httpStatus.BAD_REQUEST, "Pickup address is required");
   }
 
 
   if (!payload.items || !Array.isArray(payload.items)) {
-    throw new Error("Items are required");
+    throw new AppError(httpStatus.BAD_REQUEST, "Items are required");
   }
 
   if (payload.items.length === 0) {
-    throw new Error("At least one product is required");
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "At least one product is required",
+    );
   }
 
   let totalAmount = 0;
@@ -25,23 +32,26 @@ const rentalOrderInDB = async(payload: any, user: JwtPayload)=>{
   for (const item of payload.items) {
 
     if (!item.productId) {
-      throw new Error("Product id is required");
+      throw new AppError(httpStatus.BAD_REQUEST, "Product id is required");
     }
 
     if (!item.quantity) {
-      throw new Error("Quantity is required");
+      throw new AppError(httpStatus.BAD_REQUEST, "Quantity is required");
     }
 
     if (item.quantity <= 0) {
-      throw new Error("Quantity must be greater than zero");
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Quantity must be greater than zero",
+      );
     }
 
     if (!item.startDate) {
-      throw new Error("Start date is required");
+      throw new AppError(httpStatus.BAD_REQUEST, "Start date is required");
     }
 
     if (!item.endDate) {
-      throw new Error("End date is required");
+      throw new AppError(httpStatus.BAD_REQUEST, "End date is required");
     }
 
     const product = await prisma.product.findUnique({
@@ -51,18 +61,21 @@ const rentalOrderInDB = async(payload: any, user: JwtPayload)=>{
     });
 
     if (!product) {
-      throw new Error("Product not found");
+      throw new AppError(httpStatus.NOT_FOUND, "Product not found");
     }
 
     if (product.stock < item.quantity) {
-      throw new Error("Insufficient stock");
+      throw new AppError(httpStatus.BAD_REQUEST, "Insufficient stock");
     }
 
     const start = new Date(item.startDate);
     const end = new Date(item.endDate);
 
     if (start >= end) {
-      throw new Error("End date must be greater than start date");
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "End date must be greater than start date",
+      );
     }
 
     const totalDays = Math.ceil(
@@ -130,21 +143,27 @@ const updateOrderInDB = async (
   });
 
   if (!order) {
-    throw new Error("Order not found");
+    throw new AppError(httpStatus.NOT_FOUND, "Order not found");
   }
 
   
   if (user.role === Role.CUSTOMER) {
     if (order.customerId !== user.id) {
-      throw new Error("You are not authorized");
+      throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
     }
 
     if (payload.orderStatus !== order_status.CANCELLED) {
-      throw new Error("Customer can only cancel orders");
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        "Customer can only cancel orders",
+      );
     }
 
     if (order.orderStatus !== order_status.PROCESSING) {
-      throw new Error("Only processing orders can be cancelled");
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Only processing orders can be cancelled",
+      );
     }
   }
 
@@ -155,7 +174,7 @@ const updateOrderInDB = async (
     );
 
     if (!isProviderOrder) {
-      throw new Error("You are not authorized");
+      throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
     }
 
     const allowedStatus : order_status[] = [
@@ -169,15 +188,25 @@ const updateOrderInDB = async (
     }
   }
 
+  const updateData: Prisma.RentalOrderUpdateInput = {
+    orderStatus: payload.orderStatus,
+  };
+
+  if (payload.orderStatus === order_status.PICKED_UP) {
+    updateData.pickUpDate = new Date();
+  }
+
+  if (payload.orderStatus === order_status.RETURNED) {
+    updateData.returnDate = new Date();
+  }
+
  
   const result = await prisma.rentalOrder.update({
     where: {
       id: orderId,
     },
     data: {
-      orderStatus: payload.orderStatus,
-      pickUpDate: payload.pickupDate,
-      returnDate: payload.returnDate,
+      ...updateData,
       pickUpAddress: payload.pickUpAddress,
     },
     include: {
@@ -197,7 +226,7 @@ const updateOrderInDB = async (
 
 const getOrdersInDB = async (user:JwtPayload)=>{
   if(!user){
-    throw new Error("User not found")
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
   };
   if (user.role === Role.ADMIN) {
      return await prisma.rentalOrder.findMany({
@@ -280,7 +309,7 @@ return result;
 
 const getSingleOrderInDB = async (user:JwtPayload, id:number)=>{
       if (!user) {
-        throw new Error("User not found");
+        throw new AppError(httpStatus.NOT_FOUND, "User not found");
       }
       if (user.role === Role.ADMIN) {
         const result = await prisma.rentalOrder.findUnique({
@@ -305,7 +334,7 @@ const getSingleOrderInDB = async (user:JwtPayload, id:number)=>{
           }
         });
         if (!result) {
-          throw new Error("Order not found");
+          throw new AppError(httpStatus.NOT_FOUND, "Order not found");
         }
         return result;
       };
@@ -325,7 +354,7 @@ const getSingleOrderInDB = async (user:JwtPayload, id:number)=>{
           },
         });
         if (!result) {
-          throw new Error("Order not found");
+          throw new AppError(httpStatus.NOT_FOUND, "Order not found");
         }
         return result;
       };
@@ -357,7 +386,7 @@ const getSingleOrderInDB = async (user:JwtPayload, id:number)=>{
         },
       });
       if (!result) {
-        throw new Error("Order not found");
+        throw new AppError(httpStatus.NOT_FOUND, "Order not found");
       }
 
       return result;

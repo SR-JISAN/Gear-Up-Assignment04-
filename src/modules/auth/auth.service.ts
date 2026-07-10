@@ -4,6 +4,8 @@ import { ILogin } from "./auth.interface";
 import { jwtUtils } from "../../utils/jwt";
 import config from "../../config";
 import { JwtPayload } from "jsonwebtoken";
+import AppError from "../../app/errors/AppError";
+import httpStatus from "http-status"
 
 const loginInDB = async(payload: ILogin)=>{
      const {email, password} = payload;
@@ -15,7 +17,7 @@ const loginInDB = async(payload: ILogin)=>{
      const isPassMatch = await bcrypt.compare(password,logInUser.password);
 
      if(!isPassMatch){
-         throw new Error ("Invalid Password");
+         throw new AppError(httpStatus.UNAUTHORIZED,"Invalid Password");
      };
 
      const jwtPayload = {
@@ -48,7 +50,10 @@ const refreshTokenInBD = async(refToken: string)=>{
      });
 
      if (user.customer_status === "BLOCKED") {
-       throw new Error("User is BLOCKED. Please contact support.");
+       throw new AppError(
+         httpStatus.FORBIDDEN,
+         "User is BLOCKED. Please contact support.",
+       );
      }
 
      const jwtPayload = {

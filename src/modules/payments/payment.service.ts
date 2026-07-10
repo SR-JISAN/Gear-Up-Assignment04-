@@ -2,6 +2,10 @@ import { prisma } from "../../lib/prisma"
 import { stripe } from "../../lib/stripe";
 import config from "../../config";
 import Stripe from "stripe";
+import { JwtPayload } from "jsonwebtoken";
+import { Role } from "../../../generated/prisma/enums";
+import httpStatus from "http-status";
+import AppError from "../../app/errors/AppError";
 
 const createCheckoutInDB = async (userId: string, orderId: number) => {
   return await prisma.$transaction(async (tx) => {
@@ -229,7 +233,101 @@ const stripeWebhookInDB = async (payload: Buffer, signature: string) => {
   }
 };
 
+const singlePaymentsHistoryInDB = async (user: JwtPayload,PId:number) => {
+  
+  if (user.role === Role.ADMIN) {
+    const result = await prisma.payment.findUnique({
+      where:{id:PId},
+      include: {
+        order: {
+          include: {
+            customer: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      }
+    });
+    if(!result){
+      throw new Error("Payments History Not Found")
+    }
+  };
+  const result = await prisma.payment.findFirst({
+    where: {
+      id:PId,
+      order: {
+        customerId: user.id,
+      },
+    },
+    include: {
+      order: {
+        select: {
+          id: true,
+          totalAmount: true,
+          orderStatus: true,
+        },
+      },
+    }
+  });
+  if (!result) {
+    throw new AppError(httpStatus.NOT_FOUND, "Payments History Not Found");
+  }
+  return result;
+};
+const paymentsHistoryInDB = async (user: JwtPayload) => {
+  console.log(user);
+  if (user.role === Role.ADMIN) {
+    return await prisma.payment.findMany({
+      include: {
+        order: {
+          include: {
+            customer: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  };
+  const result = await prisma.payment.findFirst({
+    where: {
+      order: {
+        customerId: user.id,
+      },
+    },
+    include: {
+      order: {
+        select: {
+          id: true,
+          totalAmount: true,
+          orderStatus: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+  if(!result){
+    throw new AppError(httpStatus.NOT_FOUND, "Payments History Not Found");
+  }
+  return result;
+};
+
 export const paymentsService = {
   createCheckoutInDB,
   stripeWebhookInDB,
+  paymentsHistoryInDB,
+  singlePaymentsHistoryInDB,
 };

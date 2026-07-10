@@ -15,6 +15,7 @@ model Product {
     provider User @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
     rentalItems RentalItem[]
+    reviews  Review[]
 
     created_at  DateTime @default(now())
     updated_at DateTime @updatedAt
