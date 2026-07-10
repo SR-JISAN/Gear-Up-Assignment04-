@@ -6,6 +6,7 @@ import { userRoute } from "./modules/users/user.route";
 import { authRoute } from "./modules/auth/auth.route";
 import { productRoute } from "./modules/products/product.route";
 import { orderRoute } from "./modules/rentalOrders/order.route";
+import { paymentsRoute } from "./modules/payments/payment.route";
 
 const app :Application = express();
 
@@ -29,5 +30,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/products", productRoute);
 
 app.use("/api/orders", orderRoute);
+
+app.use("/api/payments",paymentsRoute);
 
 export default app;

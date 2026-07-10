@@ -29,3 +29,15 @@ enum order_status {
     RETURNED 
     CANCELLED
 }
+
+enum PaymentGateway {
+  STRIPE
+  SSLCOMMERZ
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}

@@ -1,0 +1,14 @@
+model Payment {
+  id            Int           @id @default(autoincrement())
+  transactionId String        @unique
+  amount        Float
+  gateway       PaymentGateway
+  status        PaymentStatus @default(PENDING)
+  orderId       Int           
+  order         RentalOrder        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  createdAt     DateTime      @default(now())
+  paidAt        DateTime?
+  
+  
+  @@map("payments")
+}

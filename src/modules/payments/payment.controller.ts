@@ -1,0 +1,23 @@
+import { Request, Response } from "express";
+import { catchAsync } from "../../utils/catch.async";
+import { paymentsService } from "./payment.service";
+import { sendResponse } from "../../utils/send.response";
+import httpStatus from "http-status";
+
+ const createCheckout = catchAsync(async(req:Request, res:Response)=>{
+    const id = req.user?.id as string;
+    const orderId = Number(req.params.orderId);
+    const result = await paymentsService.createCheckoutInDB(id,orderId);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Checkout session created successfully",
+      data: result,
+    });
+ })
+
+
+ export const paymentsController = {
+      createCheckout
+ }
