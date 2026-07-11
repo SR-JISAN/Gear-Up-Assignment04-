@@ -135,6 +135,7 @@ const createCheckoutInDB = async (userId: string, orderId: number) => {
         userId: user.id,
       },
 
+
       success_url: `${process.env.CLIENT_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.CLIENT_URL}/payment/cancel`,
     });
@@ -148,15 +149,29 @@ const createCheckoutInDB = async (userId: string, orderId: number) => {
 
 const stripeWebhookInDB = async (payload: Buffer, signature: string) => {
   const endpointSecret = config.stripe_webhook_secret;
-  const event = stripe.webhooks.constructEvent(
-    payload,
-    signature,
-    endpointSecret,
-  );
-  
+
+  let event: Stripe.Event;
+
+  try {
+    event = stripe.webhooks.constructEvent(payload, signature, endpointSecret);
+  } catch (err: any) {
+    console.error("Webhook signature verification failed:", err.message);
+    throw new Error("Invalid webhook signature");
+  }
+
+ 
+
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
+
+      console.log(session.metadata);
+      console.log(session.payment_status);
+
+      if (session.payment_status !== "paid") {
+        console.log("Payment is not completed.");
+        return;
+      }
 
       const paymentId = Number(session.metadata?.paymentId);
       const orderId = Number(session.metadata?.orderId);
@@ -166,70 +181,64 @@ const stripeWebhookInDB = async (payload: Buffer, signature: string) => {
       }
 
       await prisma.$transaction(async (tx) => {
-       
         const payment = await tx.payment.findUnique({
-          where: {
-            id: paymentId,
-          },
+          where: { id: paymentId },
         });
 
         if (!payment) {
           throw new Error("Payment not found");
         }
 
-        
         if (payment.status === "SUCCESS") {
           return;
         }
 
-        
         await tx.payment.update({
-          where: {
-            id: paymentId,
-          },
+          where: { id: paymentId },
           data: {
             status: "SUCCESS",
-            transactionId: session.payment_intent as string,
+            transactionId:
+              typeof session.payment_intent === "string"
+                ? session.payment_intent
+                : (session.payment_intent?.id ?? payment.transactionId),
             paidAt: new Date(),
           },
         });
 
-        
         await tx.rentalOrder.update({
-          where: {
-            id: orderId,
-          },
+          where: { id: orderId },
           data: {
             orderStatus: "PAID",
           },
         });
+
+        
       });
 
       break;
     }
-    case "payment_intent.payment_failed":{
+
+    case "payment_intent.payment_failed": {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
 
       const paymentId = Number(paymentIntent.metadata?.paymentId);
 
       if (paymentId) {
         await prisma.payment.update({
-          where: {
-            id: paymentId,
-          },
+          where: { id: paymentId },
           data: {
             status: "FAILED",
           },
         });
+
+      
       }
 
       break;
     }
-      break;
+
     default:
-      // Unexpected event type
-      console.log(`Unhandled event type ${event.type}.`);
-      break;
+      console.log(`Unhandled event: ${event.type}`);
   }
 };
 
