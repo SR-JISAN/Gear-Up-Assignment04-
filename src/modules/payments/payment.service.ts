@@ -242,11 +242,10 @@ const stripeWebhookInDB = async (payload: Buffer, signature: string) => {
   }
 };
 
-const singlePaymentsHistoryInDB = async (user: JwtPayload,PId:number) => {
-  
+const singlePaymentsHistoryInDB = async (user: JwtPayload, PId: number) => {
   if (user.role === Role.ADMIN) {
     const result = await prisma.payment.findUnique({
-      where:{id:PId},
+      where: { id: PId },
       include: {
         order: {
           include: {
@@ -259,15 +258,19 @@ const singlePaymentsHistoryInDB = async (user: JwtPayload,PId:number) => {
             },
           },
         },
-      }
+      },
     });
-    if(!result){
-      throw new Error("Payments History Not Found")
+
+    if (!result) {
+      throw new AppError(httpStatus.NOT_FOUND, "Payments History Not Found");
     }
-  };
+
+    return result;
+  }
+
   const result = await prisma.payment.findFirst({
     where: {
-      id:PId,
+      id: PId,
       order: {
         customerId: user.id,
       },
@@ -280,11 +283,13 @@ const singlePaymentsHistoryInDB = async (user: JwtPayload,PId:number) => {
           orderStatus: true,
         },
       },
-    }
+    },
   });
+
   if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, "Payments History Not Found");
   }
+
   return result;
 };
 const paymentsHistoryInDB = async (user: JwtPayload) => {
