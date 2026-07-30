@@ -14,7 +14,7 @@ route.get("/", productController.product);
 
 route.get("/single/:id", productController.singleProduct);
 
-route.get("/categories",auth(Role.ADMIN), productController.getAllCategories);
+route.get("/categories", productController.getAllCategories);
 
 route.patch("/update/:id",auth(Role.PROVIDER,Role.ADMIN), productController.updateProduct);
 

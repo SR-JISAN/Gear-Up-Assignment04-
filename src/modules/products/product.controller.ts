@@ -40,6 +40,7 @@ const product = catchAsync(async(req: Request,res:Response)=>{
      statusCode: httpStatus.OK,
      message: "Found Products Successfully",
      data: result,
+     meta: result.meta
    });
 });
 

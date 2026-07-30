@@ -4,6 +4,7 @@ import { ICategory, IProduct, IUpdateProduct } from "./product.interface";
 import { product_availability, Role } from "../../../generated/prisma/enums";
 import AppError from "../../app/errors/AppError";
 import httpStatus from "http-status";
+import { Prisma } from "../../../generated/prisma/client";
 
 
 
@@ -92,38 +93,45 @@ const postCategoryInDB =async(payload:ICategory)=>{
 };
 
 
-const getProductInDB = async (query: Record<string, any>) => {
-  const { search, category, brand, availability, minPrice, maxPrice } = query;
+const getProductInDB = async (query: Record<string, unknown>) => {
+  const {
+    search,
+    category,
+    availability,
+    minPrice,
+    maxPrice,
+    page = "1",
+    limit = "6",
+    sort = "created_at",
+    order = "desc",
+  } = query;
 
-  const where: any = {};
+  const currentPage = Number(page);
+  const perPage = Number(limit);
 
+  const where: Prisma.ProductWhereInput = {};
+
+  // Search
   if (search) {
     where.title = {
-      contains: search,
+      contains: search as string,
       mode: "insensitive",
     };
   }
 
-  if (brand) {
-    where.brand = {
-      contains: brand,
-      mode: "insensitive",
-    };
-  }
-
-  if (availability) {
-    where.availability = availability;
-  }
-
+  // Category
   if (category) {
     where.category = {
-      name: {
-        equals: category,
-        mode: "insensitive",
-      },
+      name: category as string,
     };
   }
 
+  // Availability
+  if (availability) {
+    where.availability = availability as any;
+  }
+
+  // Price
   if (minPrice || maxPrice) {
     where.price_per_day = {};
 
@@ -136,8 +144,46 @@ const getProductInDB = async (query: Record<string, any>) => {
     }
   }
 
-    const result = await prisma.product.findMany({
-      where,
+  const total = await prisma.product.count({
+    where,
+  });
+
+  const data = await prisma.product.findMany({
+    where,
+    include: {
+      category: true,
+      provider: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+    skip: (currentPage - 1) * perPage,
+    take: perPage,
+    orderBy: {
+      [sort as string]: order,
+    },
+  });
+
+  return {
+    meta: {
+      page: currentPage,
+      limit: perPage,
+      total,
+      totalPage: Math.ceil(total / perPage),
+    },
+    data,
+  };
+};
+
+const getSingleProduct =async(id:number)=>{
+  if(!id){
+    throw new AppError(httpStatus.NOT_FOUND, "Product not Found");
+  };
+    const result = await prisma.product.findUnique({
+      where: { id: id },
       include: {
         category: true,
         provider: {
@@ -147,31 +193,7 @@ const getProductInDB = async (query: Record<string, any>) => {
             email: true,
           },
         },
-        reviews: {
-          select: {
-            user: {
-              select: {
-                name: true,
-              },
-            },
-            rating: true,
-            comment: true,
-          },
-        },
       },
-      orderBy: {
-        created_at: "desc",
-      },
-    });
-  return result;
-};
-
-const getSingleProduct =async(id:number)=>{
-  if(!id){
-    throw new AppError(httpStatus.NOT_FOUND, "Product not Found");
-  };
-    const result  = await prisma.product.findUnique({
-      where: {id:id}
     });
 
     return result;
@@ -180,6 +202,10 @@ const getSingleProduct =async(id:number)=>{
 const getCategoriesInDb = async()=>{
 
       const result = await prisma.category.findMany({
+        select: {
+          id: true,
+          name: true,
+        },
         orderBy: {
           created_at: "desc",
         },
