@@ -1,16 +1,15 @@
 model RentalOrder {
-    id Int @id @default(autoincrement())
-    totalAmount Decimal @db.Decimal(10,2)
-    orderStatus order_status @default(PROCESSING)
-    pickUpAddress String @db.Text
-    pickUpDate DateTime?
-    returnDate DateTime? 
-    customerId String 
-    customer User @relation(fields: [customerId], references: [id],onDelete: Cascade)
-    rentalItem RentalItem[]
-    payments Payment[]
-    createdAt DateTime @default(now())
+  id            Int          @id @default(autoincrement())
+  totalAmount   Decimal      @db.Decimal(10, 2)
+  orderStatus   order_status @default(PROCESSING)
+  pickUpAddress String       @db.Text
+  pickUpDate    DateTime?
+  returnDate    DateTime?
+  customerId    String
+  customer      User         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  rentalItem    RentalItem[]
+  payments      Payment[]
+  createdAt     DateTime     @default(now())
 
-    @@map("rental_orders")
-
+  @@map("rental_orders")
 }

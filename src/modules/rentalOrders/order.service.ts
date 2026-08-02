@@ -259,13 +259,21 @@ const getOrdersInDB = async (user:JwtPayload)=>{
      where: {
        customerId: user.id,
      },
-     include: {
-       rentalItem: {
-         include: {
-           product: true,
-         },
-       },
-     },
+       include: {
+      rentalItem: {
+        include: {
+          product: {
+            include: {
+              reviews: {
+                where: {
+                  userId: user.id,
+                }
+              }
+            }
+          }
+        }
+       }
+      },
      orderBy: {
        createdAt: "asc",
      },
@@ -313,7 +321,7 @@ const getSingleOrderInDB = async (user:JwtPayload, id:number)=>{
       }
       if (user.role === Role.ADMIN) {
         const result = await prisma.rentalOrder.findUnique({
-          where:{id:id},
+          where: { id: id },
           include: {
             customer: {
               select: {
@@ -331,7 +339,7 @@ const getSingleOrderInDB = async (user:JwtPayload, id:number)=>{
                 },
               },
             },
-          }
+          },
         });
         if (!result) {
           throw new AppError(httpStatus.NOT_FOUND, "Order not found");

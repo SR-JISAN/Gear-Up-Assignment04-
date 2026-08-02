@@ -1,26 +1,25 @@
 model RentalItem {
+  id Int @id @default(autoincrement())
 
-    id Int @id @default(autoincrement())
+  orderId Int
+  order   RentalOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-    orderId Int
-    order RentalOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
 
-    productId Int
-    product Product @relation(fields: [productId], references: [id])
+  quantity Int
 
-    quantity Int
+  pricePerDay Decimal @db.Decimal(10, 2)
 
-    pricePerDay Decimal @db.Decimal(10,2)
+  startDate DateTime
 
-    startDate DateTime
+  endDate DateTime
 
-    endDate DateTime
+  totalDays Int
 
-    totalDays Int
+  subTotal Decimal @db.Decimal(10, 2)
 
-    subTotal Decimal @db.Decimal(10,2)
+  createdAt DateTime @default(now())
 
-    createdAt DateTime @default(now())
-
-    @@map("rental_items")
+  @@map("rental_items")
 }

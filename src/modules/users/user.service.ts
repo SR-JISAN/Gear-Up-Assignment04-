@@ -6,51 +6,77 @@ import { IUpdateRoleStatus, IUser } from "./user.interface"
 import { Role, User_Status } from "../../../generated/prisma/enums";
 import AppError from "../../app/errors/AppError";
 import httpStatus from "http-status";
+import jwt from "jsonwebtoken";
+import { jwtUtils } from "../../utils/jwt";
 
 
-const registerInDB = async(payload : IUser)=>{
-    const {name, email, password, phone_number , profileImage,role}= payload;
-     const isUserAlreadyHaveEmail  = await prisma.user.findUnique({
-        where : {email}
-     })
 
-     if(isUserAlreadyHaveEmail){
-        throw new AppError(httpStatus.CONFLICT, "Email Already Exists");
-     }
+const registerInDB = async (payload: IUser) => {
+  
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      email: payload.email,
+    },
+  });
 
-     if (role == Role.ADMIN) {
-       throw new AppError(httpStatus.UNAUTHORIZED, "Invalid role");
-     }
+  if (existingUser) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Email already exists");
+  }
 
-     const saltRounds = Number(config.bcryptSaltRounds);
-     const hashPassword = await bcrypt.hash(password,saltRounds);
+ 
+  const hashedPassword = await bcrypt.hash(
+    payload.password,
+    Number(config.bcryptSaltRounds),
+  );
 
-     const createUser = await prisma.user.create({
-        data : {
-            name,
-            email,
-            password: hashPassword,
-            phone_number,
-            role,
-            profile:{
-                create:{
-                    profileImage
-                }
-            }
+  // Create user
+  const user = await prisma.user.create({
+    data: {
+      name: payload.name,
+      email: payload.email,
+      phone_number: payload.phone_number,
+      password: hashedPassword,
+      role: payload.role,
+      profile: {
+        create: {
+          bio: "",
+          profileImage: null,
+        },
+      },
+    },
+    include: {
+      profile: true,
+    },
+  });
 
-        }
-     });
 
-     const user = await prisma.user.findUnique({
-        where:{id: createUser.id},
-        omit:{password: true},
-        include:{
-            profile:true
-        }
-     });
+  const jwtPayload = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  };
 
-     return user;
-    
+  // Generate Tokens
+  const accessToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwt_access_token_secret,
+    config.jwt_access_token_expiry,
+  );
+
+  const refreshToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwt_refresh_token_secret,
+    config.jwt_refresh_token_expiry,
+  );
+
+  // Remove password from response
+  const { password, ...userWithoutPassword } = user;
+
+  return {
+    accessToken,
+    refreshToken,
+    user: userWithoutPassword,
+  };
 };
 
 const getProfileInDB = async(userId: string)=>{
@@ -92,7 +118,12 @@ const getAllUsersFromDB = async () => {
 
 const updateProfileInDB = async (id: string, payload: any)=>{
 
-    const {name, phone_number,bio,profileImage} = payload
+     const {
+       name,
+       phone_number,
+       profile: { bio, profileImage },
+     } = payload;
+
 
     const updateProfile = await prisma.user.update({
       where: { id },
@@ -101,8 +132,8 @@ const updateProfileInDB = async (id: string, payload: any)=>{
         phone_number,
         profile: {
           update: {
-            profileImage,
             bio,
+            profileImage,
           },
         },
       },

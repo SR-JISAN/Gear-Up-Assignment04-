@@ -9,6 +9,7 @@ import { orderRoute } from "./modules/rentalOrders/order.route";
 import { paymentsRoute } from "./modules/payments/payment.route";
 import { reviewsRoute } from "./modules/reviews/reviews.route";
 import globalErrorHandler from "./app/errors/globalErrorHandler";
+import { DashboardRoutes } from "./modules/dashboard/dashboard.route";
 
 const app :Application = express();
 
@@ -18,11 +19,11 @@ app.use(cors({
     credentials : true
 }));
 
-app.post("/api/payments/webhook", express.raw({ type: "application/json" }));
+app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
 
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(express.json());
 
 
 app.get("/",(req : Request,res : Response)=>{
@@ -40,6 +41,7 @@ app.use("/api/orders", orderRoute);
 app.use("/api/payments",paymentsRoute);
 
 app.use("/api/reviews",reviewsRoute);
+app.use("/api/dashboard", DashboardRoutes);
 
 app.use(globalErrorHandler);
 

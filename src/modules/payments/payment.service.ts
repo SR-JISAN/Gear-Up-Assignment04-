@@ -9,7 +9,7 @@ import AppError from "../../app/errors/AppError";
 
 const createCheckoutInDB = async (userId: string, orderId: number) => {
   return await prisma.$transaction(async (tx) => {
-    
+
     const order = await tx.rentalOrder.findFirst({
       where: {
         id: orderId,
@@ -24,6 +24,7 @@ const createCheckoutInDB = async (userId: string, orderId: number) => {
         payments: true,
       },
     });
+
 
     if (!order) {
       throw new Error(
@@ -135,8 +136,7 @@ const createCheckoutInDB = async (userId: string, orderId: number) => {
         userId: user.id,
       },
 
-
-      success_url: `${process.env.CLIENT_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.CLIENT_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}&orderId=${order.id}`,
       cancel_url: `${process.env.CLIENT_URL}/payment/cancel`,
     });
 
@@ -243,44 +243,44 @@ const stripeWebhookInDB = async (payload: Buffer, signature: string) => {
 };
 
 const singlePaymentsHistoryInDB = async (user: JwtPayload, PId: number) => {
-  if (user.role === Role.ADMIN) {
-    const result = await prisma.payment.findUnique({
-      where: { id: PId },
-      include: {
-        order: {
-          include: {
-            customer: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
+  const where =
+    user.role === Role.ADMIN
+      ? { id: PId }
+      : {
+          id: PId,
+          order: {
+            customerId: user.id,
+          },
+        };
+
+  const result = await prisma.payment.findFirst({
+    where,
+    include: {
+      order: {
+        include: {
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          rentalItem: {
+            include: {
+              product: {
+                include: {
+                  category: true,
+                  provider: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                    },
+                  },
+                },
               },
             },
           },
-        },
-      },
-    });
-
-    if (!result) {
-      throw new AppError(httpStatus.NOT_FOUND, "Payments History Not Found");
-    }
-
-    return result;
-  }
-
-  const result = await prisma.payment.findFirst({
-    where: {
-      id: PId,
-      order: {
-        customerId: user.id,
-      },
-    },
-    include: {
-      order: {
-        select: {
-          id: true,
-          totalAmount: true,
-          orderStatus: true,
         },
       },
     },
@@ -293,7 +293,7 @@ const singlePaymentsHistoryInDB = async (user: JwtPayload, PId: number) => {
   return result;
 };
 const paymentsHistoryInDB = async (user: JwtPayload) => {
-  console.log(user);
+  
   if (user.role === Role.ADMIN) {
     return await prisma.payment.findMany({
       include: {
@@ -314,7 +314,7 @@ const paymentsHistoryInDB = async (user: JwtPayload) => {
       },
     });
   };
-  const result = await prisma.payment.findFirst({
+  const result = await prisma.payment.findMany({
     where: {
       order: {
         customerId: user.id,

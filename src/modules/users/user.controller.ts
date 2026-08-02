@@ -50,7 +50,7 @@ const updateProfile = catchAsync (async(req:Request, res: Response)=>{
    sendResponse(res,{
     success: true,
     statusCode: httpStatus.OK,
-    message: "User Updated Successfully By Admin",
+    message: "Profile  Updated Successfully",
     data: result
    });
 

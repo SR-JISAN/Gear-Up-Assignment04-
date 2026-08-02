@@ -1,25 +1,24 @@
 model Product {
-    id Int @id @default(autoincrement())
-    title String @db.VarChar(100)
-    details String @db.Text
-    brand String @db.VarChar(150)
-    stock Int
-    price_per_day  Decimal @db.Decimal(10,2)
-    product_image String? 
-    condition product_condition @default(NEW)
-    availability product_availability @default(AVAILABLE)
-    categoryId  Int
-    category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  id            Int                  @id @default(autoincrement())
+  title         String               @db.VarChar(100)
+  details       String               @db.Text
+  brand         String               @db.VarChar(150)
+  stock         Int
+  price_per_day Decimal              @db.Decimal(10, 2)
+  product_image String?
+  condition     product_condition    @default(NEW)
+  availability  product_availability @default(AVAILABLE)
+  categoryId    Int
+  category      Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-    providerId String
-    provider User @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  providerId String
+  provider   User   @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
-    rentalItems RentalItem[]
-    reviews  Review[]
+  rentalItems RentalItem[]
+  reviews     Review[]
 
-    created_at  DateTime @default(now())
-    updated_at DateTime @updatedAt
-    
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
   @@map("products")
-    
 }
